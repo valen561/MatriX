@@ -921,3 +921,154 @@ table.ranking th, table.ranking td { text-align: left; }
   font-family: var(--font-display);
   font-weight: 700;
 }
+
+/* ============================================================
+   CELULAR: menos invasivo y más cómodo
+   ============================================================ */
+@media (max-width: 600px) {
+  .container { padding: 0 16px; }
+  section { padding: 24px 0; }
+
+  /* Encabezado superior compacto */
+  .site-header .container.nav { padding: 12px 16px; }
+  .site-header .brand-tag { display: none; }
+  .brand-name { font-size: 1.15rem; }
+  .nav-toggle { padding: 8px 12px; font-size: 0.85rem; }
+
+  /* Títulos más chicos */
+  h2 { font-size: 1.5rem; }
+  .section-head h2 { font-size: 1.4rem; }
+  .hero-copy h1 { font-size: 1.9rem; }
+  .lede { font-size: 0.98rem; }
+
+  /* Tarjetas y formularios a todo el ancho */
+  .form-card, .card, .level-card, .demo-card { padding: 18px; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+
+  /* Tablas: se desplazan dentro de su espacio, sin mover la página */
+  table.ranking { display: block; overflow-x: auto; white-space: nowrap; }
+  table.ranking th, table.ranking td { padding: 10px 12px; font-size: 0.82rem; }
+
+  /* Juego: el problema y el botón caben en pantalla */
+  .game-shell { padding: 16px; }
+  .game-topbar { gap: 6px; justify-content: center; }
+  .game-topbar .pill { font-size: 0.78rem; padding: 6px 10px; }
+  .expression { font-size: 2.2rem; }
+  .answer-form { gap: 8px; }
+  .answer-form input { width: 96px; font-size: 1.25rem; }
+
+  /* Barra de cuenta: abajo a la derecha, sin tapar el menú */
+  .cuenta-barra {
+    top: auto;
+    bottom: 12px;
+    right: 12px;
+    left: auto;
+    gap: 8px;
+  }
+  .cuenta-perfil { padding: 4px 10px 4px 4px; font-size: 0.8rem; }
+  .cuenta-perfil span { max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cuenta-foto { width: 28px; height: 28px; }
+  .cuenta-boton { padding: 7px 10px; font-size: 0.8rem; }
+
+  /* Tutor: botón circular solo con el ícono, arriba de la barra de cuenta */
+  .tutor-flotante {
+    left: 12px;
+    right: auto;
+    bottom: 12px;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    font-size: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tutor-flotante::before { content: "💬"; font-size: 1.3rem; }
+  .tutor-panel {
+    left: 12px;
+    right: 12px;
+    bottom: 76px;
+    width: auto;
+    height: min(62vh, 440px);
+  }
+
+  /* Pie de página en columna */
+  .site-footer .container { flex-direction: column; gap: 4px; text-align: center; }
+}
+
+/* Corrección de encabezado en celular */
+@media (max-width: 600px) {
+  .site-header .brand-tag { display: none !important; }
+  .site-header .ui-controles { display: none !important; }
+  .site-header .container.nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .site-header .brand { flex-direction: row; align-items: center; min-width: 0; }
+  .nav-toggle { flex-shrink: 0; }
+}
+
+/* ============================================================
+   MENÚ EN CELULAR: panel igual al de la computadora
+   ============================================================ */
+@media (max-width: 860px) {
+  .site-header .nav-links.open {
+    display: flex !important;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px;
+    background: var(--surface);
+    overflow-y: auto;
+    z-index: 80;
+  }
+  .site-header .nav-links.open a { padding: 14px 16px; font-size: 1rem; }
+
+  .site-header .nav-links.open ~ .ui-controles {
+    display: flex !important;
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    flex-direction: row;
+    gap: 10px;
+    z-index: 81;
+  }
+  .site-header .nav-links.open ~ .ui-controles .ui-toggle { flex: 1; }
+  .site-header .nav-links.open ~ .ui-controles .texto { display: inline !important; }
+
+  body:has(.nav-links.open) .cuenta-barra,
+  body:has(.nav-links.open) .tutor-flotante,
+  body:has(.nav-links.open) .tutor-panel { display: none !important; }
+}
+
+/* Correcciones finales de celular: encabezado y menú sin modo compacto */
+@media (max-width: 860px) {
+  .site-header .container.nav > * { width: auto !important; max-width: none !important; flex: 0 0 auto; }
+  .site-header .container.nav > .brand { flex: 1 1 auto; min-width: 0; }
+  .site-header .nav-toggle { margin-left: auto; }
+
+  html.menu-compacto .nav-links a { font-size: 1rem !important; text-align: left !important; padding: 14px 16px !important; }
+  html.menu-compacto .nav-links a::before { content: none !important; }
+  html.menu-compacto .brand-name { font-size: 1.15rem; }
+  html.menu-compacto .brand-tag { display: none; }
+}
+
+/* Con el menú abierto en celular, la página no se desplaza por detrás */
+@media (max-width: 860px) {
+  html:has(.nav-links.open),
+  body:has(.nav-links.open) {
+    overflow: hidden;
+    height: 100%;
+    touch-action: none;
+  }
+  .site-header .nav-links.open { touch-action: pan-y; }
+}

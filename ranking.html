@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ranking · NumeraX</title>
+  <title>Ranking · MatriX</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
@@ -13,7 +13,7 @@
   <header class="site-header">
     <div class="container nav">
       <a href="index.html" class="brand">
-        <h1 class="brand-name" data-brand-name>NumeraX</h1>
+        <h1 class="brand-name" data-brand-name>MatriX</h1>
         <span class="brand-tag" data-brand-tag>Práctica de matemática</span>
       </a>
       <button class="nav-toggle" aria-expanded="false" aria-controls="menu-principal">☰ Menú</button>
@@ -34,6 +34,17 @@
           <span class="eyebrow">Ranking global</span>
           <h2>¿Quién va ganando?</h2>
           <p>Mejor puntaje de cada jugador, hasta 50 jugadores.</p>
+        </div>
+
+        <div style="display:flex; justify-content:center; margin-bottom:14px;">
+          <select id="filtro-nivel" aria-label="Nivel" style="padding:9px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink); font-family:var(--font-body);">
+            <option value="general">Todos los niveles</option>
+            <option value="suma">Sumas</option>
+            <option value="resta">Restas</option>
+            <option value="multiplicacion">Multiplicación</option>
+            <option value="division">División</option>
+            <option value="mixto">Desafío mixto</option>
+          </select>
         </div>
 
         <div class="tabs" role="tablist" aria-label="Período del ranking" style="justify-content:center;">
@@ -64,8 +75,8 @@
 
   <footer class="site-footer">
     <div class="container">
-      <span>© <span data-current-year></span> <span data-brand-name>NumeraX</span></span>
-      <span>Proyecto final · Ruta basica · Jóvenes creaTIvos</span>
+      <span>© <span data-current-year></span> <span data-brand-name>MatriX</span></span>
+      <span>Proyecto final · Ruta avanzada · Jóvenes creaTIvos</span>
     </div>
   </footer>
 
@@ -101,10 +112,14 @@
       return new Date(iso).toLocaleDateString("es-UY", { day: "2-digit", month: "2-digit", year: "numeric" });
     }
 
-    async function cargarRanking(periodo = "diario") {
+    let periodoActual = "diario";
+    let nivelActual = "general";
+
+    async function cargarRanking(periodo = periodoActual) {
+      periodoActual = periodo;
       mostrarMensaje("Cargando ranking...");
       try {
-        const respuesta = await fetch(`${URL_API}/api/ranking?periodo=${periodo}`);
+        const respuesta = await fetch(`${URL_API}/api/ranking?periodo=${periodo}&nivel=${nivelActual}`);
         if (!respuesta.ok) throw new Error(`Estado ${respuesta.status}`);
         const partidas = await respuesta.json();
 
@@ -146,6 +161,11 @@
         });
         cargarRanking(boton.dataset.periodo);
       });
+    });
+
+    document.getElementById("filtro-nivel").addEventListener("change", (e) => {
+      nivelActual = e.target.value;
+      cargarRanking(periodoActual);
     });
 
     cargarRanking("diario");

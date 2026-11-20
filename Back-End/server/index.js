@@ -135,6 +135,9 @@ app.get("/api/ranking", async (req, res) => {
   const inicio = inicioPeriodo(periodo);
   const filtro = { usuario: { $ne: null } };
   if (inicio) filtro.fecha = { $gte: inicio };
+  const niveles = ["suma", "resta", "multiplicacion", "division", "mixto"];
+  const nivel = String(req.query.nivel || "general");
+  if (niveles.includes(nivel)) filtro.nivel = nivel;
 
   const top = await db
     .collection("partidas")
@@ -249,6 +252,19 @@ app.put("/api/perfil", async (req, res) => {
     if (error.code === 11000) return res.status(409).json({ error: "Ese nombre de usuario ya existe." });
     throw error;
   }
+});
+
+// Buscar jugadores por nombre (mínimo 2 letras)
+app.get("/api/usuarios", async (req, res) => {
+  const q = String(req.query.q || "").trim();
+  if (q.length < 2) return res.json([]);
+  const escapado = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const coincidencias = await db
+    .collection("usuarios")
+    .find({ usuario: { $regex: escapado, $options: "i" } }, { projection: { _id: 0, usuario: 1, foto: 1 } })
+    .limit(10)
+    .toArray();
+  res.json(coincidencias);
 });
 
 // Perfil público: lo ven otros jugadores

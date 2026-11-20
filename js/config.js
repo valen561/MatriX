@@ -8,7 +8,7 @@
  * -----------------------------------------------------------
  */
 const APP_CONFIG = {
-  BRAND_NAME: "NumeraX", // <-- Reemplazá acá por el nombre real de tu marca
+  BRAND_NAME: "MatriX", // <-- Reemplazá acá por el nombre real de tu marca
   BRAND_TAG: "Práctica de matemática, nivel avanzado",
 
   // Credenciales de DEMO para el panel de admin.

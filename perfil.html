@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mi perfil · NumeraX</title>
+  <title>Mi perfil · MatriX</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
@@ -13,7 +13,7 @@
   <header class="site-header">
     <div class="container nav">
       <a href="index.html" class="brand">
-        <h1 class="brand-name" data-brand-name>NumeraX</h1>
+        <h1 class="brand-name" data-brand-name>MatriX</h1>
         <span class="brand-tag" data-brand-tag>Práctica de matemática</span>
       </a>
       <button class="nav-toggle" aria-expanded="false" aria-controls="menu-principal">☰ Menú</button>
@@ -37,7 +37,13 @@
           <button type="button" class="cuenta-boton" id="btn-cerrar-sesion" style="margin-top:8px;">Cerrar sesión</button>
         </div>
 
-        <div class="form-card" style="max-width: 520px; margin: 0 auto;">
+        <div class="form-card" style="max-width: 520px; margin: 0 auto 24px;">
+          <label for="buscar" style="display:block; margin-bottom:8px; font-family:var(--font-mono); font-size:0.78rem; color:var(--ink-soft);">Buscar jugadores</label>
+          <input type="search" id="buscar" placeholder="Escribí un nombre..." autocomplete="off" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--ink); font-family:var(--font-body);" />
+          <ul id="resultados" style="list-style:none; padding:0; margin:10px 0 0;"></ul>
+        </div>
+
+        <div class="form-card" id="card-editar" style="max-width: 520px; margin: 0 auto;">
           <div class="alert alert-error" id="alerta-error" role="alert"></div>
           <div class="alert alert-success" id="alerta-ok" role="status"></div>
 
@@ -73,8 +79,8 @@
 
   <footer class="site-footer">
     <div class="container">
-      <span>© <span data-current-year></span> <span data-brand-name>NumeraX</span></span>
-      <span>Proyecto final · Ruta basica · Jóvenes creaTIvos</span>
+      <span>© <span data-current-year></span> <span data-brand-name>MatriX</span></span>
+      <span>Proyecto final · Ruta avanzada · Jóvenes creaTIvos</span>
     </div>
   </footer>
 
@@ -87,7 +93,8 @@
     const NIVELES = { suma: "Sumas", resta: "Restas", multiplicacion: "Multiplicación", division: "División", mixto: "Desafío mixto" };
     const sesion = obtenerSesion();
 
-    if (!sesion) {
+    const verUsuarioInicial = new URLSearchParams(window.location.search).get("usuario");
+    if (!sesion && !verUsuarioInicial) {
       window.location.href = "ingresar.html";
     }
 
@@ -239,7 +246,90 @@
       window.location.href = "index.html";
     });
 
-    if (sesion) cargarPerfil();
+    // Búsqueda de jugadores
+    const buscar = document.getElementById("buscar");
+    const resultados = document.getElementById("resultados");
+    let temporizador;
+    buscar.addEventListener("input", () => {
+      clearTimeout(temporizador);
+      temporizador = setTimeout(async () => {
+        const texto = buscar.value.trim();
+        resultados.innerHTML = "";
+        if (texto.length < 2) return;
+        try {
+          const respuesta = await fetch(`${API_URL}/api/usuarios?q=${encodeURIComponent(texto)}`);
+          const lista = await respuesta.json();
+          if (lista.length === 0) {
+            resultados.innerHTML = '<li style="color:var(--ink-soft);">No se encontraron jugadores.</li>';
+            return;
+          }
+          lista.forEach((j) => {
+            const li = document.createElement("li");
+            const enlace = document.createElement("a");
+            enlace.href = `perfil.html?usuario=${encodeURIComponent(j.usuario)}`;
+            enlace.textContent = j.usuario;
+            enlace.style.cssText = "display:block; padding:8px 4px; color:var(--ink); text-decoration:none; border-bottom:1px solid var(--border);";
+            li.append(enlace);
+            resultados.append(li);
+          });
+        } catch {
+          resultados.innerHTML = '<li style="color:var(--ink-soft);">No se pudo buscar ahora.</li>';
+        }
+      }, 300);
+    });
+
+    // Perfil de otro jugador (vista de solo lectura)
+    const verUsuario = new URLSearchParams(window.location.search).get("usuario");
+    if (verUsuario) {
+      document.getElementById("card-editar").style.display = "none";
+      document.querySelector("form#form-perfil")?.closest(".form-card")?.remove();
+      document.querySelector("h2#titulo-perfil") && (document.getElementById("titulo-perfil").textContent = verUsuario);
+      document.getElementById("btn-cerrar-sesion").style.display = "none";
+      document.querySelector(".eyebrow").textContent = "Perfil de jugador";
+
+      const contenedor = document.createElement("div");
+      contenedor.className = "form-card";
+      contenedor.style.cssText = "max-width:520px; margin:0 auto;";
+      contenedor.innerHTML = '<p style="color:var(--ink-soft);">Cargando perfil...</p>';
+      document.querySelector("main .container").append(contenedor);
+
+      fetch(`${API_URL}/api/jugadores/${encodeURIComponent(verUsuario)}`)
+        .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+          if (!ok) return (contenedor.textContent = d.error || "Jugador no encontrado.");
+          contenedor.innerHTML = "";
+          if (d.foto) {
+            const img = document.createElement("img");
+            img.src = d.foto;
+            img.alt = "";
+            img.style.cssText = "width:112px;height:112px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 12px;";
+            contenedor.append(img);
+          }
+          const desc = document.createElement("p");
+          desc.textContent = d.descripcion || "Este jugador todavía no escribió nada.";
+          contenedor.append(desc);
+          if (d.partidas.length) {
+            const tabla = document.createElement("table");
+            tabla.className = "ranking";
+            tabla.innerHTML = "<thead><tr><th>Nivel</th><th>Puntaje</th><th>Fecha</th></tr></thead>";
+            const cuerpo = document.createElement("tbody");
+            d.partidas.forEach((p) => {
+              const tr = document.createElement("tr");
+              [NIVELES[p.nivel] || p.nivel, p.puntaje, new Date(p.fecha).toLocaleDateString("es-UY")].forEach((v) => {
+                const td = document.createElement("td");
+                td.textContent = v;
+                tr.append(td);
+              });
+              cuerpo.append(tr);
+            });
+            tabla.append(cuerpo);
+            contenedor.append(tabla);
+          }
+        })
+        .catch(() => (contenedor.textContent = "No se pudo cargar el perfil."));
+    } else if (sesion) {
+      cargarPerfil();
+    }
   </script>
 </body>
 </html>
