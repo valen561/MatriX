@@ -272,57 +272,7 @@ app.get("/api/jugadores/:usuario", async (req, res) => {
   });
 });
 
-// ---------- Tutor con IA (Gemini) ----------
-const INSTRUCCIONES_TUTOR = `Sos un tutor de matemática para chicos de secundaria, en español rioplatense (usá "vos").
-Explicá conceptos con claridad y paso a paso, con ejemplos simples.
-Cuando te pidan resolver un ejercicio, NO des la respuesta final: dá pistas, preguntas guía y el primer paso.
-Si el tema no es matemática, decí amablemente que solo podés ayudar con matemática.
-Respuestas breves, de no más de 6 o 7 líneas.`;
 
-app.post("/api/chat", async (req, res) => {
-  const sesion = await sesionDesdeRequest(req);
-  if (!sesion || sesion.rol !== "jugador")
-    return res.status(401).json({ error: "Iniciá sesión para usar el tutor." });
-
-  const pregunta = String(req.body.pregunta || "").trim().slice(0, 300);
-  if (!pregunta) return res.status(400).json({ error: "Escribí una pregunta." });
-
-  const controlador = new AbortController();
-  const limite = setTimeout(() => controlador.abort(), 20000);
-  let respuesta;
-  try {
-    respuesta = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
-    {
-      signal: controlador.signal,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": process.env.GEMINI_API_KEY,
-      },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: INSTRUCCIONES_TUTOR }] },
-        contents: [{ role: "user", parts: [{ text: pregunta }] }],
-        generationConfig: { maxOutputTokens: 800, temperature: 0.4 },
-      }),
-    }
-    );
-  } catch (error) {
-    clearTimeout(limite);
-    console.error("Gemini no respondió a tiempo:", error.message);
-    return res.status(504).json({ error: "El tutor tardó demasiado. Probá de nuevo." });
-  }
-  clearTimeout(limite);
-
-  if (!respuesta.ok) {
-    console.error("Error de Gemini:", respuesta.status, await respuesta.text());
-    return res.status(502).json({ error: "El tutor no está disponible en este momento." });
-  }
-
-  const datos = await respuesta.json();
-  const texto = datos.candidates?.[0]?.content?.parts?.[0]?.text || "No pude responder, probá de nuevo.";
-  res.json({ respuesta: texto });
-});
 
 app.listen(process.env.PORT || 3000, () =>
   console.log(`Servidor en http://localhost:${process.env.PORT || 3000}`)
